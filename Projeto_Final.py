@@ -1,10 +1,5 @@
 import datetime
-import os  # Necessário para carregar o histórico de forma robusta
 
-# --- 1. VARIÁVEIS DE DADOS GLOBAIS ---
-
-# Lista principal que armazena os dados de todas as máquinas.
-# Formato: [Nome (str), Status (str), Temperatura (°C) (float), Última Manutenção (str)]
 maquinas = [
     ["Torno CNC", "operando", 72.5, "05/11/2025"],
     ["Prensa Hidráulica", "parada", 30.0, "01/11/2025"],
@@ -12,19 +7,12 @@ maquinas = [
     ["Retífica", "operando", 60.0, "02/11/2025"],
 ]
 
-# Dicionário que armazena o histórico detalhado de manutenções.
-# Inicializado como vazio para ser preenchido pela função carregar_historico().
 historico = {}
 
-
-# --- 2. FUNÇÕES DE PERSISTÊNCIA (SALVAR/CARREGAR) ---
-
 def salvar_dados_maquinas(lista_maquinas, nome_arquivo="dados_maquinas.txt"):
-    """Salva os dados da lista 'maquinas' em um arquivo de texto, usando ';' como separador."""
     try:
         with open(nome_arquivo, "w") as arq:
             for m in lista_maquinas:
-                # Formato: Nome;Status;Temperatura;Data\n
                 linha = f"{m[0]};{m[1]};{m[2]};{m[3]}\n"
                 arq.write(linha)
         print(f" Dados das máquinas salvos em **{nome_arquivo}**")
@@ -33,7 +21,6 @@ def salvar_dados_maquinas(lista_maquinas, nome_arquivo="dados_maquinas.txt"):
 
 
 def carregar_dados_maquinas(nome_arquivo="dados_maquinas.txt"):
-    """Carrega os dados das máquinas de um arquivo de texto, usando ';' como separador."""
     maquinas_lidas = []
     try:
         with open(nome_arquivo, "r") as arq:
@@ -43,7 +30,7 @@ def carregar_dados_maquinas(nome_arquivo="dados_maquinas.txt"):
                     try:
                         nome = partes[0]
                         status = partes[1]
-                        temperatura = float(partes[2])  # Tenta converter para float
+                        temperatura = float(partes[2])
                         ultima = partes[3]
                         maquinas_lidas.append([nome, status, temperatura, ultima])
                     except ValueError:
@@ -58,11 +45,9 @@ def carregar_dados_maquinas(nome_arquivo="dados_maquinas.txt"):
 
 
 def salvar_historico(dict_historico, nome_arquivo="dados_historico.txt"):
-    """Salva o dicionário de histórico em um arquivo, usando '|' como separador entre eventos."""
     try:
         with open(nome_arquivo, "w") as arq:
             for maquina, eventos in dict_historico.items():
-                # Formato: Maquina|Evento1|Evento2|...
                 linha = f"{maquina}|{'|'.join(eventos)}\n"
                 arq.write(linha)
         print(f" Histórico de manutenções salvo em **{nome_arquivo}**")
@@ -71,7 +56,6 @@ def salvar_historico(dict_historico, nome_arquivo="dados_historico.txt"):
 
 
 def carregar_historico(nome_arquivo="dados_historico.txt"):
-    """Carrega o dicionário de histórico de um arquivo, usando '|' como separador."""
     historico_lido = {}
     try:
         with open(nome_arquivo, "r") as arq:
@@ -90,22 +74,15 @@ def carregar_historico(nome_arquivo="dados_historico.txt"):
         print(f" Arquivo de histórico '{nome_arquivo}' não encontrado. Iniciando com dados padrão.")
         return {}
 
-
-# --- 3. FUNÇÕES DE OPERAÇÃO E ATUALIZAÇÃO ---
-
 def adicionar_manutencao(nome_maquina, descricao):
-    """Adiciona um registro de manutenção ao histórico e atualiza a data na lista de máquinas."""
     global historico
 
     if nome_maquina not in historico:
         historico[nome_maquina] = []
-
-    # Obtém e formata a data atual
     data_hoje = datetime.date.today().strftime("%d/%m/%Y")
     descricao_completa = f"{descricao} - {data_hoje}"
     historico[nome_maquina].append(descricao_completa)
 
-    # Atualiza a data da última manutenção na lista 'maquinas' (índice 3)
     for m in maquinas:
         if m[0] == nome_maquina:
             m[3] = data_hoje
@@ -115,7 +92,6 @@ def adicionar_manutencao(nome_maquina, descricao):
 
 
 def registrar_medicao(linha):
-    """Atualiza o status e a temperatura de uma máquina a partir de uma string de entrada."""
     global maquinas
     try:
         partes = linha.split(",")
@@ -127,11 +103,10 @@ def registrar_medicao(linha):
         status = partes[2].strip().lower()  # Normaliza o status
 
         encontrada = False
-        # Percorre a lista para encontrar a máquina pelo nome (case-insensitive)
         for m in maquinas:
             if m[0].lower() == nome.lower():
-                m[1] = status  # Atualiza Status
-                m[2] = temperatura  # Atualiza Temperatura
+                m[1] = status
+                m[2] = temperatura
 
                 print(f" Medição de '{m[0]}' atualizada: Status='{status}', Temp={temperatura}°C.")
                 encontrada = True
@@ -143,29 +118,20 @@ def registrar_medicao(linha):
     except ValueError as e:
         print(f" Erro ao processar medição: {e}")
 
-
-# --- 4. FUNÇÃO DE RELATÓRIO ---
-
 def gerar_relatorio(nome_arquivo="relatorio_final.txt"):
-    """Gera um arquivo de texto com o resumo das máquinas, a mais quente e o histórico."""
     global maquinas, historico
     if not maquinas:
         print(" Não há máquinas cadastradas para gerar o relatório.")
         return
-
-    # Encontra a máquina com a maior temperatura (m[2])
     maquina_quente = max(maquinas, key=lambda x: x[2])
 
     try:
-        # Modo 'w' para sobrescrever o arquivo
         with open(nome_arquivo, "w") as arq:
             arq.write("        RELATÓRIO DE MÁQUINAS           \n")
             arq.write("=" * 40 + "\n")
 
-            # Máquina mais quente
             arq.write(f"▶ Máquina mais quente: {maquina_quente[0]} ({maquina_quente[2]:.1f} °C)\n\n")
 
-            # Máquinas que requerem atenção
             arq.write("--- Máquinas que Requerem Atenção ---\n")
             encontrou_atencao = False
             for m in maquinas:
@@ -175,7 +141,6 @@ def gerar_relatorio(nome_arquivo="relatorio_final.txt"):
             if not encontrou_atencao:
                 arq.write("- Nenhuma máquina requer atenção.\n")
 
-            # Quantidade de manutenções
             arq.write("\n--- Quantidade de Manutenções Registradas ---\n")
             for nome, eventos in historico.items():
                 arq.write(f"- {nome}: {len(eventos)} registro(s)\n")
@@ -184,11 +149,7 @@ def gerar_relatorio(nome_arquivo="relatorio_final.txt"):
     except IOError:
         print(f" Erro ao escrever no arquivo {nome_arquivo}.")
 
-
-# --- 5. MÓDULO EXTRA 4: BUSCA/FILTRO (IMPLEMENTAÇÃO) ---
-
 def buscar_maquina_por_nome_parcial(termo_busca):
-    """Busca máquinas cujo nome contenha o termo de busca (case-insensitive)."""
     resultados = []
     termo = termo_busca.lower()
 
@@ -200,7 +161,6 @@ def buscar_maquina_por_nome_parcial(termo_busca):
 
 
 def listar_maquinas_por_status(status_filtro):
-    """Filtra máquinas que possuem um status de operação específico."""
     resultados = []
     status = status_filtro.lower()
 
@@ -212,7 +172,6 @@ def listar_maquinas_por_status(status_filtro):
 
 
 def modulo_extra():
-    """Interface para o Módulo 4: Busca e Filtro, integrada ao menu principal."""
     print("\n--- Módulo Extra 4: Busca e Filtro ---")
     print("1 - Buscar máquina por nome parcial")
     print("2 - Filtrar máquinas por status")
@@ -245,24 +204,19 @@ def modulo_extra():
         print("Opção inválida do Módulo Extra.")
 
 
-# --- 6. FLUXO PRINCIPAL (MENU) ---
+
 
 def main():
     global maquinas, historico
 
-    # 1. Carregamento Inicial de Dados
-
-    # Carrega o histórico (necessário antes de carregar as máquinas para ter o dado global)
     historico_carregado = carregar_historico()
     if historico_carregado:
         historico = historico_carregado
 
-    # Tenta carregar os dados das máquinas. Se houver dados salvos, substitui os dados iniciais.
     dados_carregados = carregar_dados_maquinas()
     if dados_carregados:
         maquinas = dados_carregados
 
-    # 2. Loop do Menu
     while True:
         print("\n=== Sistema de Manutenção de Máquinas ===")
         print("1 - Registrar medição (Atualizar status/temp)")
@@ -287,11 +241,10 @@ def main():
             gerar_relatorio()
 
         elif opc == "4":
-            # Chama o Módulo Extra
+
             modulo_extra()
 
         elif opc == "5":
-            # Salva ambos os conjuntos de dados
             salvar_dados_maquinas(maquinas)
             salvar_historico(historico)
 
@@ -303,6 +256,6 @@ def main():
             print("Opção inválida. Tente novamente.")
 
 
-# 3. Execução
+
 if __name__ == "__main__":
     main()
