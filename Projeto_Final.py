@@ -99,8 +99,8 @@ def registrar_medicao(linha):
             raise ValueError("Formato incorreto. Use: nome, temperatura, status")
 
         nome = partes[0].strip()
-        temperatura = float(partes[1].strip())  # Converte para float
-        status = partes[2].strip().lower()  # Normaliza o status
+        temperatura = float(partes[1].strip())  
+        status = partes[2].strip().lower()  
 
         encontrada = False
         for m in maquinas:
@@ -130,7 +130,7 @@ def gerar_relatorio(nome_arquivo="relatorio_final.txt"):
             arq.write("        RELATÓRIO DE MÁQUINAS           \n")
             arq.write("=" * 40 + "\n")
 
-            arq.write(f"▶ Máquina mais quente: {maquina_quente[0]} ({maquina_quente[2]:.1f} °C)\n\n")
+            arq.write(f" Máquina mais quente: {maquina_quente[0]} ({maquina_quente[2]:.1f} °C)\n\n")
 
             arq.write("--- Máquinas que Requerem Atenção ---\n")
             encontrou_atencao = False
@@ -258,4 +258,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
